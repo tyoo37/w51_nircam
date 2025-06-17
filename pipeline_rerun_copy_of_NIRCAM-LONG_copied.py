@@ -385,12 +385,12 @@ def main(filtername, module, Observations=None, regionname='w51', do_destreak=Fa
                 assert fname.endswith('_cal.fits')
                 member['expname'] = fname.replace("_cal.fits", "_align.fits")
                 shutil.copy(fname, member['expname'])
-                if not os.path.exists(member['expname']): #check align file
-                    print(member['expname'])
-                    raise FileNotFoundError(f"Alignment file {member['expname']} was not created from {fname}")
-                # fix_alignment(member['expname'], proposal_id=proposal_id,
-                #               module=module, field=field, basepath=basepath,
-                #               filtername=filtername, use_average=use_average)
+#                if not os.path.exists(member['expname']): #check align file
+#                    print(member['expname'])
+ #                   raise FileNotFoundError(f"Alignment file {member['expname']} was not created from {fname}")
+                fix_alignment(member['expname'], proposal_id=proposal_id,
+                               module=module, field=field, basepath=basepath,
+                               filtername=filtername, use_average=use_average)
 
         asn_file_each = asn_file.replace("_asn.json", f"_{module}_asn.json")
         with open(asn_file_each, 'w') as fh:
@@ -696,8 +696,8 @@ def fix_alignment(fn, proposal_id=None, module=None, field=None, basepath=None, 
                 decshift += 0.1*u.arcsec
                 rashift += -0.23*u.arcsec
     else:
-        rashift = 0*u.arsec
-        decshift = 0*u.arsec
+        rashift = 0*u.arcsec
+        decshift = 0*u.arcsec
     print(f"Shift for {fn} is {rashift}, {decshift}")
     align_fits = fits.open(fn)
     if 'RAOFFSET' in align_fits[1].header:
