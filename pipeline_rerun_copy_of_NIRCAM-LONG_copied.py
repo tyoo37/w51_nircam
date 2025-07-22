@@ -369,6 +369,7 @@ def main(filtername, module, Observations=None, regionname='w51', do_destreak=Fa
         for member in asn_data['products'][0]['members']:
             print(f"Running destreak={do_destreak} and maybe alignment on {member} for module={module}")
             hdr = fits.getheader(member['expname'])
+            do_destreak=False
             if do_destreak:
                 if filtername in (hdr['PUPIL'], hdr['FILTER']):
                     outname = destreak(member['expname'],
@@ -513,6 +514,7 @@ def main(filtername, module, Observations=None, regionname='w51', do_destreak=Fa
         for member in asn_data['products'][0]['members']:
             print(f"Running destreak={do_destreak} and maybe alignment on {member} for module={module}")
             hdr = fits.getheader(member['expname'])
+            do_destreak=False
             if do_destreak:
                 if filtername in (hdr['PUPIL'], hdr['FILTER']):
                     outname = destreak(member['expname'],
@@ -528,7 +530,7 @@ def main(filtername, module, Observations=None, regionname='w51', do_destreak=Fa
                 member['expname'] = fname.replace("_cal.fits", "_align.fits")
                 shutil.copy(fname, member['expname'])
 
-                #fix_alignment(member['expname'], proposal_id=proposal_id, module=module, field=field, basepath=basepath, filtername=filtername, use_average=use_average)
+                fix_alignment(member['expname'], proposal_id=proposal_id, module=module, field=field, basepath=basepath, filtername=filtername, use_average=use_average)
 
         asn_data['products'][0]['name'] = f'jw0{proposal_id}-o{field}_t001_nircam_clear-{filtername.lower()}-merged'
         asn_file_merged = asn_file.replace("_asn.json", f"_merged_asn.json")
@@ -777,7 +779,7 @@ if __name__ == "__main__":
                       action='store',
                       help="Skip the destreaking step?", metavar="skip_destreak")
     parser.add_option("-p", "--proposal_id", dest="proposal_id",
-                      default='5365',
+                      default='6151',
                       help="proposal id (string)", metavar="proposal_id")
     (options, args) = parser.parse_args()
 
