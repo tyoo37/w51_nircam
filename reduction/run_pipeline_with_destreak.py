@@ -3,17 +3,18 @@ import os
 import shutil
 # Example command and arguments
 filtername='F187N'
-os.chdir('/home/t.yoo/w51/w51_nircam/reduction/')
 command = [
     "python",
-    "NIRCAM_pipeline_short.py",
+    "/home/t.yoo/w51/w51_nircam/pipeline_rerun_copy_of_NIRCAM-LONG_copied.py",
     "--proposal_id=6151",
     f"--filternames={filtername}"
 ]
 
 # Run NIRCAM pipeline for nrca, nrcb, merged
 result = subprocess.run(command, capture_output=True, text=True)
+print(result)
 
+os.chdir('/home/t.yoo/w51/w51_nircam/reduction/destreak/')
 command = [
     "python",
     "destreak_auto.py",
@@ -21,10 +22,10 @@ command = [
 ]
 # Run destreaking -> move original cal files to no_destreak folder and overwrite cal files with destreaked ones
 result = subprocess.run(command, capture_output=True, text=True)
-
+print(result)
 command = [
     "python",
-    "NIRCAM_pipeline_short.py",
+    "/home/t.yoo/w51/w51_nircam/pipeline_rerun_copy_of_NIRCAM-LONG_copied.py",
     "--proposal_id=6151",
     f"--filternames={filtername}",
     "--module=merged"
@@ -35,5 +36,5 @@ shutil.copy(f'/orange/adamginsburg/jwst/w51/{filtername}/pipeline/jw06151-o001_t
 
 # Run NIRCAM pipeline for merged (will generate merged for destreaked ones)
 result = subprocess.run(command, capture_output=True, text=True)
-
+print(result)
 
