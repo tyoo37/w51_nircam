@@ -48,6 +48,7 @@ from crowdsource import crowdsource_base
 from crowdsource.crowdsource_base import fit_im, psfmod
 
 from astroquery.svo_fps import SvoFps
+from astropy.table import Table, vstack
 
 import pylab as pl
 pl.rcParams['figure.facecolor'] = 'w'
@@ -562,7 +563,7 @@ def main(smoothing_scales={'f182m': 0.25, 'f187n':0.25, 'f212n':0.55,
     parser.add_option("-m", "--modules", dest="modules",
                     #default='nrca,nrcb,merged,merged-reproject',
                     default='nrca,nrcb,merged',
-                    help="module list", metavar="modules")
+                    help="module list", metavar="modules") 
     parser.add_option("-d", "--desaturated", dest="desaturated",
                     default=False,
                     action='store_true',
@@ -807,9 +808,12 @@ def do_photometry_step(options, filtername, module, detector, field, basepath,
     filtered_errest = np.nanmedian(err)
     print(f'Error estimate for DAO from median(err): {filtered_errest}', flush=True)
 
-    daofind_tuned = DAOStarFinder(threshold=5 * filtered_errest,
+    daofind_tuned = DAOStarFinder(threshold=4 * filtered_errest,
                                   fwhm=fwhm_pix, roundhi=1.0, roundlo=-1.0,
                                   sharplo=0.30, sharphi=1.40)
+    #daofind_tuned = DAOStarFinder(threshold=4 * filtered_errest,
+    #                              fwhm=fwhm_pix, roundhi=0.8, roundlo=-0.9,
+    #                              sharplo=0.25, sharphi=1.20)
     print("Finding stars with daofind_tuned", flush=True)
     finstars = daofind_tuned(np.nan_to_num(data))
 
@@ -1044,6 +1048,8 @@ def do_photometry_step(options, filtername, module, detector, field, basepath,
 
         print("About to do BASIC photometry....")
         result = phot_basic(np.nan_to_num(data))
+        # I want to use daofind params in the future
+        result = vstack((result, finstars['roundness1'], finstars['roundness2'], finstars['sharpness']))
         print(f"Done with BASIC photometry.  len(result)={len(result)} dt={time.time() - t0}")
 
         # remove negative-peak and zero-peak sources (they affect the residuals badly)

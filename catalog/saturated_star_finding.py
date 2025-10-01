@@ -426,20 +426,28 @@ def main():
 
     #"fn = '/orange/adamginsburg/jwst/w51/F405N/pipeline/jw02221002001_02201_00001_nrcalong_destreak_o002_crf.fits'
     #remove_saturated_stars(fn, verbose=True)
+    from optparse import OptionParser
+    parser = OptionParser()
+    parser.add_option("-f", "--filter", dest="filter",
+                      default='F140M',
+                      help="filter list", metavar="filter")
+    (options, args) = parser.parse_args()
+    filt = options.filter
 
+    #filters = ['F140M', 'F150W', 'F162M', 'F182M', 'F187N', 'F210M', 'F335M', 'F360M', 'F405N', 'F410M', 'F480M']
 
     # skipping 'merged' b/c we don't expect PSFs to fit well enough
-    for module in ('nrca', 'nrcb', ):#'merged'):
-        for fn in glob.glob(f"/orange/adamginsburg/jwst/w51/F*/pipeline/*{module}*crf.fits"):
+    for module in ('nrca', 'nrcb', 'merged'):
+        for fn in glob.glob(f"/orange/adamginsburg/jwst/w51/{filt}/pipeline/*{module}*crf.fits"):
             print()
             print(fn)
             remove_saturated_stars(fn, verbose=True)
 
-    for module in ('nrca', 'nrcb', ):#'merged'):
-        for fn in glob.glob(f"/orange/adamginsburg/jwst/w51/F*/pipeline/*{module}*crf.fits"):
-            print()
-            print(fn)
-            remove_saturated_stars(fn, verbose=True)
+    #for module in ('nrca', 'nrcb', 'merged'):
+    #    for fn in glob.glob(f"/orange/adamginsburg/jwst/w51/F*/pipeline/*{module}*crf.fits"):
+    #        print()
+    #        print(fn)
+    #        remove_saturated_stars(fn, verbose=True)
 
 
 if __name__ == "__main__":
