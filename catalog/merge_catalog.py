@@ -319,6 +319,7 @@ def combine_singleframe(tbls, max_offset=0.10 * u.arcsec, realign=False, nanaver
     arrays = {key: np.zeros([len(basecrds), len(tbls)], dtype='float') * np.nan
               for key in column_names if key in tbls[0].colnames or key in ('skycoord', 'ra', 'dec', 'roundness1', 'roundness2', 'sharpness')}
 
+    
     for ii, tbl in enumerate(tqdm(tbls, desc='Table Loop (stack)')):
         crds = tbl[skycoord_colname]
 
@@ -336,7 +337,7 @@ def combine_singleframe(tbls, max_offset=0.10 * u.arcsec, realign=False, nanaver
         arrays['ra'][match_inds[keep], ii] = tbl[skycoord_colname].ra[keep]
         arrays['dec'][match_inds[keep], ii] = tbl[skycoord_colname].dec[keep]
         print(f"{ii}: Added {keep.sum()} of {len(keep)} sources from exposure {tbl.meta['exposure']} {tbl.meta['MODULE'] if 'MODULE' in tbl.meta else ''} [total={len(basecrds)}]", flush=True)
-
+    
     print("Compiling arrays into table", flush=True)
     print(f"Column names are {arrays.keys()} and should be {column_names}", flush=True)
     arrays['skycoord'] = SkyCoord(ra=arrays['ra'], dec=arrays['dec'], frame='icrs', unit=(u.deg, u.deg))

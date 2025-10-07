@@ -1049,7 +1049,9 @@ def do_photometry_step(options, filtername, module, detector, field, basepath,
         print("About to do BASIC photometry....")
         result = phot_basic(np.nan_to_num(data))
         # I want to use daofind params in the future
-        result = vstack((result, finstars['roundness1'], finstars['roundness2'], finstars['sharpness']))
+        result['roundness1'] = finstars['roundness1']
+        result['roundness2'] = finstars['roundness2']
+        result['sharpness'] = finstars['sharpness']
         print(f"Done with BASIC photometry.  len(result)={len(result)} dt={time.time() - t0}")
 
         # remove negative-peak and zero-peak sources (they affect the residuals badly)
