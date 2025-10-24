@@ -734,7 +734,7 @@ def do_photometry_step(options, filtername, module, detector, field, basepath,
     fwhm_tbl = Table.read(f'{basepath}/reduction/fwhm_table.ecsv')
     row = fwhm_tbl[fwhm_tbl['Filter'] == filtername]
     fwhm = fwhm_arcsec = float(row['PSF FWHM (arcsec)'][0])
-    fwhm_pix = float(row['PSF FWHM (pixel)'][0])
+    fwhm_pix = float(row['PSF FWHM (pixel)'][0]) 
 
     # redundant, saves me renaming variables....
     filt = filtername

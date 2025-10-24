@@ -176,7 +176,7 @@ def get_psf(header, path_prefix='.'):
     try:
         assert ww.wcs.cdelt[1] != 1, "This is not a valid WCS!!! CDELT is wrong!! how did this HAPPEN!?!?"
     except AssertionError as ex:
-        print(ex)
+        print(ex) 
         print("ignoring WCS failure so check that stuff is right...")
 
     psfgen.filter = filtername

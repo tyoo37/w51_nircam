@@ -22,3 +22,4 @@ jwst_dolph_20250604_101545.phot.warnings
 *.fits
 *.csv
 *.json
+starbug.param
