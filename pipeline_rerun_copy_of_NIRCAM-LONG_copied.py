@@ -325,8 +325,9 @@ def main(filtername, module, Observations=None, regionname='w51', do_destreak=Fa
                                                                  "_uncal.fits"),
                                        save_results=True, output_dir=output_dir,
                                        save_calibrated_ramp=True,
-                                       steps={'ramp_fit': {'suppress_one_group':False},
-                                              "refpix": {"use_side_ref_pixels": True}})
+                                       steps={'ramp_fit': {'suppress_one_group':False, 'save_results':True},
+                                              "refpix": {"use_side_ref_pixels": True},
+                                              "jump":{"save_results":True}})
 
                 # apparently "rate" files have no WCS, but this is where it's needed...
                 # print("Aligning RATE images before doing IMAGE2 pipeline")

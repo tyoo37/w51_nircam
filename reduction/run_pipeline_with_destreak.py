@@ -2,7 +2,7 @@ import subprocess
 import os
 import shutil
 # Example command and arguments
-filtername='F187N'
+filtername='F162M'
 command = [
     "python",
     "/home/t.yoo/w51/w51_nircam/pipeline_rerun_copy_of_NIRCAM-LONG_copied.py",

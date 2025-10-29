@@ -672,7 +672,7 @@ def merge_individual_frames(module='merged', suffix="", desat=False, filtername=
         column_names = ('flux', flux_error_colname, 'skycoord', 'qf', 'rchi2', 'fracflux', 'fwhm', 'fluxiso', 'spread_model')
         method_suffix = 'crowdsource'
         # flux_colname = 'flux_fit'
-    elif method in ('dao', 'daophot' , 'basic', 'daobasic', 'iterative', 'daoiterative'):
+    elif method in ('dao', 'daophot' , 'basic', 'daobasic', 'iterative', 'daoiterative','dao_after_merger'):
         flux_error_colname = 'flux_err'
         column_names = ('flux_fit', flux_error_colname, 'skycoord', 'qfit', 'cfit', 'flux_init', 'flags', 'local_bkg', 'iter_detected', 'group_size', 'roundness1', 'roundness2', 'sharpness')
         # flux_colname = 'flux'
@@ -1310,6 +1310,7 @@ def main():
                                                       'dao': '_basic',
                                                       'daoiterative': '_iterative',
                                                       'iterative': '_iterative',
+                                                      'dao_after_merger': '_combined'
                                                       }[method]
                                             
                                             merge_individual_frames(module=module,
@@ -1378,6 +1379,13 @@ def main():
                             if not options.skip_daophot:
                                 t0 = time.time()
                                 print("DAOPHOT")
+                                try:
+                                    print(f'Running daophot {module} desat={desat} bgsub={bgsub} epsf={epsf} blur={blur} fitpsf={fitpsf} target={target}', flush=True)
+                                    merge_daophot(daophot_type='combined', module=module, desat=desat, bgsub=bgsub, epsf=epsf,
+                                                  target=target, basepath=basepath, blur=blur, indivexp=options.merge_singlefields)
+                                
+                                except Exception as ex:
+                                    raise ex
                                 try:
                                     print(f'daophot basic {module} desat={desat} bgsub={bgsub} epsf={epsf} blur={blur} fitpsf={fitpsf} target={target}', flush=True)
                                     merge_daophot(daophot_type='basic', module=module, desat=desat, bgsub=bgsub, epsf=epsf,
