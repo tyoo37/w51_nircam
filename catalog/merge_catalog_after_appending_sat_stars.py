@@ -227,10 +227,18 @@ def combine_singleframe(tbls, max_offset=0.10 * u.arcsec, realign=False, nanaver
             # mutual_matches = (reverse_matches[matches] == np.arange(len(matches)))
             # even if the match is not mutual, consider it the same star as an existing one because it's too close.
             # keep = (sep > max_offset) | ((~mutual_matches) & (sep  > min_offset))
-            keep = sep > min_offset
+            keep = sep > min_offset 
+
+            # also replace basecrds with new crds if the closest neighbor has from_sat_catalog true
+            # this is to prioritize the catalog from saturated star catalog over the original catalog as they are more accurate for bright stars or dealing with bad pixels
+            if 'from_sat_catalog' in tbl.colnames:
+                replace_to = (tbl['from_sat_catalog']) & (sep <= min_offset)
+                replace_from = matches[replace_to]
+                basecrds[replace_from] = crds[replace_to]
 
             newcrds = crds[keep]
             basecrds = SkyCoord([basecrds, newcrds])
+         
             print(f"Added {len(newcrds)} new sources in exposure {tbl.meta['exposure']} {tbl.meta['MODULE'] if 'MODULE' in tbl.meta else ''} [total={len(basecrds)}]")
             # f" ({mutual_matches.sum()} mutual matches ({(~mutual_matches).sum()} not), {(sep > max_offset).sum()} above {max_offset}, keeping {keep.sum()}), ", flush=True)
         print(f"Iteration {ii}: There are a total of {len(basecrds)} sources in the base coordinate list [method={'dao' if dao else 'crowdsource'}]")
@@ -453,9 +461,9 @@ def merge_catalogs(tbls, catalog_type='crowdsource', module='nrca',
         for tbl in tqdm(tbls, desc='Table Loop'):
             t0 = time.time()
             wl = tbl.meta['filter']
-            flag_near_saturated(tbl, module=module, filtername=wl, target=target, basepath=basepath)
+            #flag_near_saturated(tbl, module=module, filtername=wl, target=target, basepath=basepath)
             # replace_saturated adds more rows
-            replace_saturated(tbl, module=module, filtername=wl, target=target, basepath=basepath)
+            #replace_saturated(tbl, module=module, filtername=wl, target=target, basepath=basepath)
             # DEBUG print(f"DEBUG: tbl['replaced_saturated'].sum(): {tbl['replaced_saturated'].sum()}")
 
             crds = tbl['skycoord']
@@ -498,9 +506,9 @@ def merge_catalogs(tbls, catalog_type='crowdsource', module='nrca',
                         matchtb[f'{cn}_{wl}'].meta = matchtb[cn].meta
                     matchtb.remove_column(cn)
 
-            print(f"Max flux in tbl for {wl}: {tbl['flux'].max()}; in jy={np.nanmax(np.array(tbl['flux_jy']))}; mag={np.nanmin(np.array(tbl['mag_ab']))}")
-            print(f"merging tables step: max flux for {wl} is {matchtb['flux_'+wl].max()} {matchtb['flux_jy_'+wl].max()} {matchtb['mag_ab_'+wl].min()}")
-            print(f"Basetable has length {len(basetable)} and ncols={len(basetable.colnames)} before stack")
+            #print(f"Max flux in tbl for {wl}: {tbl['flux'].max()}; in jy={np.nanmax(np.array(tbl['flux_jy']))}; mag={np.nanmin(np.array(tbl['mag_ab']))}")
+            #print(f"merging tables step: max flux for {wl} is {matchtb['flux_'+wl].max()} {matchtb['flux_jy_'+wl].max()} {matchtb['mag_ab_'+wl].min()}")
+            #print(f"Basetable has length {len(basetable)} and ncols={len(basetable.colnames)} before stack")
 
             basetable = table.hstack([basetable, matchtb], join_type='exact')
             meta[f'{wl[1:-1]}pxdg'.upper()] = tbl.meta['pixelscale_deg2']
@@ -508,9 +516,9 @@ def merge_catalogs(tbls, catalog_type='crowdsource', module='nrca',
             for key in tbl.meta:
                 meta[f'{wl[1:-1]}{key[:4]}'.upper()] = tbl.meta[key]
 
-            print(f"Basetable has length {len(basetable)} and ncols={len(basetable.colnames)} after stack")
-            print(f"merging tables step: max flux for {wl} in merged table is {basetable['flux_'+wl].max()}"
-                  f" {np.nanmax(np.array(basetable['flux_jy_'+wl]))} {np.nanmin(np.array(basetable['mag_ab_'+wl]))}")
+            #print(f"Basetable has length {len(basetable)} and ncols={len(basetable.colnames)} after stack")
+            #print(f"merging tables step: max flux for {wl} in merged table is {basetable['flux_'+wl].max()}"
+            #      f" {np.nanmax(np.array(basetable['flux_jy_'+wl]))} {np.nanmin(np.array(basetable['mag_ab_'+wl]))}")
             # DEBUG
             # DEBUG if hasattr(basetable[f'{cn}_{wl}'], 'mask'):
             # DEBUG     print(f"Table has mask sum for column {cn} {basetable[cn+'_'+wl].mask.sum()}")
@@ -520,15 +528,15 @@ def merge_catalogs(tbls, catalog_type='crowdsource', module='nrca',
             # there can be multiple stars in the merged coordinate list whose closest match is a saturated
             # star.  i.e., there could be two coordinates that both see the same F410M flux.
 
-            bad = np.isnan(tbl['mag_ab']) & (tbl['flux'] > 0)
-            if any(bad):
-                raise ValueError("Bad magnitudes for good fluxes")
+            #bad = np.isnan(tbl['mag_ab']) & (tbl['flux'] > 0)
+            #if any(bad):
+            #    raise ValueError("Bad magnitudes for good fluxes")
 
-            print(f"Flagged {tbl[f'near_saturated_{wl}'].sum()} stars that are near saturated stars "
-                  f"in filter {wl} out of {len(tbl)}.  "
-                  f"There are then {basetable[f'near_saturated_{wl}_{wl}'].sum()} in the merged table.  "
-                  f"There are also {basetable[f'replaced_saturated_{wl}'].sum()} replaced saturated.", flush=True)
-
+            #print(f"Flagged {tbl[f'near_saturated_{wl}'].sum()} stars that are near saturated stars "
+            #      f"in filter {wl} out of {len(tbl)}.  "
+            #      f"There are then {basetable[f'near_saturated_{wl}_{wl}'].sum()} in the merged table.  "
+            #      f"There are also {basetable[f'replaced_saturated_{wl}'].sum()} replaced saturated.", flush=True)
+        """
         print(f"Stacked all rows into table with len={len(basetable)}", flush=True)
         zeropoint410 = u.Quantity(jfilts.loc['JWST/NIRCam.F410M']['ZeroPoint'], u.Jy)
         zeropoint182 = u.Quantity(jfilts.loc['JWST/NIRCam.F182M']['ZeroPoint'], u.Jy)
@@ -560,7 +568,7 @@ def merge_catalogs(tbls, catalog_type='crowdsource', module='nrca',
         # Then subtract that remainder back from the F187 band to get the continuum-subtracted F187
         basetable.add_column(basetable['flux_jy_f187n'] - basetable['flux_jy_182m187'], name='flux_jy_187m182')
         basetable.add_column(-2.5*np.log10(basetable['flux_jy_187m182'] / zeropoint187), name='mag_ab_187m182')
-        
+        """
 
         """ # this adds to the file size too much
         # Add some important colors
@@ -896,8 +904,9 @@ def merge_daophot(module='nrca', detector='', daophot_type='basic', desat=False,
                   for x in glob.glob(f"{basepath}/catalogs/{filn.lower()}*{module}*indivexp_merged{desat}{bgsub}{blur_}_dao_{daophot_type}.fits")
                   ]
         if len(catfns) == 0:
-            filn = 'f405n'
-            raise ValueError(f"{basepath}/catalogs/{filn.lower()}*{module}*indivexp_merged{desat}{bgsub}{blur_}_dao_{daophot_type}.fits had no matches")
+            for filn in filternames:
+                print(f"No matches found to {basepath}/catalogs/{filn.lower()}*{module}*indivexp_merged{desat}{bgsub}{blur_}_dao_{daophot_type}.fits")
+            raise ValueError
         if len(catfns) != len(imgfns):
             print("WARNING: Different length of imgfns & catfns!")
             print("imgfns:", imgfns)
@@ -1385,7 +1394,7 @@ def main():
                                 print("DAOPHOT")
                                 try:
                                     print(f'Running daophot {module} desat={desat} bgsub={bgsub} epsf={epsf} blur={blur} fitpsf={fitpsf} target={target}', flush=True)
-                                    merge_daophot(daophot_type='combined', module=module, desat=desat, bgsub=bgsub, epsf=epsf,
+                                    merge_daophot(daophot_type='after_merger_combined', module=module, desat=desat, bgsub=bgsub, epsf=epsf,
                                                   target=target, basepath=basepath, blur=blur, indivexp=options.merge_singlefields)
                                 
                                 except Exception as ex:

@@ -311,6 +311,8 @@ def update_sat_catalogs(filt='F140M'):
         wav = int(filt[1:4])
         if wav < 300:
             filelist = glob.glob(f"/orange/adamginsburg/jwst/w51/{filt}/pipeline/*{module}*destreak*crf.fits")
+            if len(filelist) ==0:
+                filelist = glob.glob(f"/orange/adamginsburg/jwst/w51/{filt}/pipeline/*{module}*crf.fits")
         else:
             filelist = glob.glob(f"/orange/adamginsburg/jwst/w51/{filt}/pipeline/*{module}*crf.fits")
         print('filelist', filelist)
@@ -367,7 +369,7 @@ def update_sat_catalogs(filt='F140M'):
 
                 def recentering_and_get_flux(x,y,flux, savefigdir='./'):
                     if np.isfinite(flux) == False or flux <=0:
-                        size= 101
+                        size = 101
                     else:
                         size = int(int(np.log10(flux)*5)*2+1)
                     print(x,y, img.shape, size)
