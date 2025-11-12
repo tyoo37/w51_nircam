@@ -320,7 +320,7 @@ def update_sat_catalogs(filt='F140M'):
             print(i, fn)
             if True:
                 print(fn)
-                sat_catalog_file = fn.replace(".fits", '_satstar_catalog.fits')
+                sat_catalog_file = fn.replace(".fits", '_satstar_catalog_newnew.fits')
                 print(sat_catalog_file)
                 sat_hdul = fits.open(sat_catalog_file)
                 
