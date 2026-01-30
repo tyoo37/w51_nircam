@@ -133,12 +133,13 @@ import stpsf
 from stpsf.utils import to_griddedpsfmodel
 
 
-def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs/', pad=30, size=None, min_sep_from_edge=5, edge_npix=10000, mask_buffer=1, plot=False):
+
+def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs/', pad=30, size=None, min_sep_from_edge=5, edge_npix=10000, mask_buffer=1, plot=True, rindsz=3):
     header = fitsdata[0].header
     data = fitsdata['SCI'].data
     data[np.isnan(fitsdata['VAR_POISSON'].data)] = 0
     dq = fitsdata['DQ'].data
-    saturated = (dq & dqflags.group['SATURATED'])>0 
+    saturated = (dq & dqflags.pixel['SATURATED'])>0 
     sources, nsource = label(saturated)
     sizes = sum_labels(saturated, sources, np.arange(nsource)+1)
     msfe = min_sep_from_edge
@@ -184,10 +185,8 @@ def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs
     slices = find_objects(saturated)
     
         # define pad/size/fwhm_pix (choose sensible defaults if not already set)
-    #pad = 81
-    # If `fwhm_pix` is available earlier (from get_fwhm), you can use it to set `size`
-    size = pad = 101
-     
+    size = pad = 81
+
     index = 0
     print(f"Found {nsource-1} saturated sources to process", flush=True)
     for i in range(nsource-1):
@@ -206,11 +205,12 @@ def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs
             ycen = int(round(yf))
             xcen = int(round(xf))
             print(f"Source {i+1}: center at (x, y) = ({xcen}, {ycen})")
-            y0 = max(0, ycen - pad)
-            y1 = min(data.shape[0], ycen + pad)
-            x0 = max(0, xcen - pad)
-            x1 = min(data.shape[1], xcen + pad)
+            y0 = int(max(0, ycen - pad))
+            y1 = int(min(data.shape[0], ycen + pad))
+            x0 = int(max(0, xcen - pad))
+            x1 = int(min(data.shape[1], xcen + pad))
             size_saturated = int(np.sqrt(sum_labels(saturated, labels=sources, index=i+1))/2)
+            area_saturated = sum_labels(saturated, labels=sources, index=i+1)
             cutout = data[y0:y1, x0:x1]
             init_params = QTable()
             init_params['x'] = [xcen - x0]
@@ -228,7 +228,7 @@ def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs
 
            
             psfphot = PSFPhotometry(
-                                        localbkg_estimator=LocalBackground(5, 15),
+                                        localbkg_estimator=LocalBackground(15, 30),
                                         fitter=lmfitter,
                                         psf_model=big_grid,
                                         fit_shape=size,
@@ -263,15 +263,17 @@ def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs
             #psfphot.x_0.bounds = (xcen - x0 - size_saturated , xcen - x0 + size_saturated)
             #psfphot.y_0.bounds = (ycen - y0 - size_saturated, ycen - y0 + size_saturated)
             saturated_mask = saturated[y0:y1, x0:x1]
+            
+
+
             # expand a few pixels of saturated area to be masked
-            saturated_mask = ndimage.binary_dilation(saturated_mask, iterations=mask_buffer)
-            mask = np.logical_or(cutout==0, np.isnan(cutout), saturated_mask)
+            saturated_mask_expanded = ndimage.binary_dilation(saturated_mask, iterations=mask_buffer)
+            mask = np.logical_or(cutout==0, np.isnan(cutout), saturated_mask_expanded)
             try:
                 result = psfphot(cutout, init_params=init_params, mask=mask)
             except Exception as ex:
                 print(f"PSF photometry failed for source {i+1} at (x,y)=({xcen},{ycen}): {ex}", flush=True)
                 continue
-
             result['skycoord_fit'] = ww.pixel_to_world(result['x_fit'], result['y_fit'])
             
             result['xcentroid'] = result['x_fit'] + x0
@@ -282,16 +284,32 @@ def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs
             ny = cutout.shape[0]
             nx = cutout.shape[1]
             model_image = np.zeros_like(cutout)
+          
 
-            for x0, y0, flux in zip(result['x_fit'], result['y_fit'], result['flux_fit']):
+           
+            
+
+
+
+            for x_fit, y_fit, flux in zip(result['x_fit'], result['y_fit'], result['flux_fit']):
                 # Make a local grid around the source
                 if np.isnan(flux):
                     raise ValueError("Flux is NaN; cannot build PSF model image")
                 y, x = np.mgrid[0:ny, 0:nx]
                 #psf_eval = big_grid(x, y, flux=flux, x_0=x0, y_0=y0)  # works for analytic PSF
-                psf_eval = big_grid(x-x0, y-y0) * flux  # works for GriddedPSFModel
+                psf_eval = big_grid(x-x_fit, y-y_fit) * flux  # works for GriddedPSFModel
                 # cut psf_eval to the image size
                 model_image += psf_eval[0:ny, 0:nx]
+            
+            threshold_image = np.zeros_like(cutout)
+
+            #count the number of pixels above local background in the model_image
+            threshold = np.nanpercentile(cutout, 99)
+            threshold_image[model_image>threshold]=1
+            num_pixels_above_threshold = np.nansum(threshold_image)
+            print(np.nanmax(model_image), flush=True)
+            print(f"Number of pixels above threshold ({threshold}): {num_pixels_above_threshold}", flush=True)
+           
             if len(result) > 0:
                 flux = result['flux_fit'][0]
                 fluxerr = result['flux_err'][0]
@@ -301,20 +319,22 @@ def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs
 
             if plot:
                 fig = plt.figure(figsize=(12,12))
-                ax1 = fig.add_subplot(2,2,1)
+                ax1 = fig.add_subplot(2,3,1)
                 ax1.imshow(cutout, origin='lower', cmap='viridis', vmin=0, vmax=np.nanpercentile(cutout, 99))
                 ax1.set_title('Cutout')
-                ax2 = fig.add_subplot(2,2,2)
+                ax2 = fig.add_subplot(2,3,2)
                 ax2.set_title('Model')
                 ax2.imshow(model_image, origin='lower', cmap='viridis', vmin=0, vmax=np.nanpercentile(cutout, 99))
-                ax3 = fig.add_subplot(2,2,3)
+                ax3 = fig.add_subplot(2,3,3)
                 resid_image = cutout - model_image
                 ax3.imshow(resid_image, origin='lower', cmap='viridis', vmin=0, vmax=np.nanpercentile(cutout, 99))
                 ax3.set_title('Residual')
-                ax4 = fig.add_subplot(2,2,4)
+                ax4 = fig.add_subplot(2,3,4)
                 ax4.imshow(mask, origin='lower', cmap='gray')
                 ax4.set_title('Mask')
-                
+                ax5 = fig.add_subplot(2,3,5)
+                ax5.imshow(threshold_image, origin='lower', cmap='gray')
+                ax5.set_title('Thresholded Model Pixels')
                 # print flux, fluxerr, snr, cfit in the title
                 if len(result) > 0:
                     
@@ -324,6 +344,26 @@ def get_saturated_stars(fitsdata,path_prefix='/orange/adamginsburg/jwst/w51/psfs
                 plt.show()
                 plt.close()
             
+            # check whether the pixels with dqflag = saturated are also flagged as HOT, DEAD, and RC
+            # this is a sanity check to make sure that the saturated pixels are not being used in the fit
+            idx_saturated_in_cutout = (dq[y0:y1, x0:x1] & dqflags.pixel['SATURATED']) > 0
+            saturated_dqflags = dq[y0:y1, x0:x1][idx_saturated_in_cutout]
+            if np.any((saturated_dqflags & dqflags.pixel['HOT'])!=0):
+                print(f"Warning: Some saturated pixels are flagged as HOT; skipping source", flush=True)
+                continue
+            if np.any((saturated_dqflags & dqflags.pixel['DEAD'])!=0):
+                print(f"Warning: Some saturated pixels are flagged as DEAD; skipping source", flush=True)
+                continue
+            #if np.any((saturated_dqflags & dqflags.pixel['RC'])!=0):
+            #    print(f"Warning: Some saturated pixels are flagged as RC; skipping source", flush=True)
+            #    continue
+            
+            
+            
+            # compare FWHM of the model and the size of saturated pixels
+            #if area_saturated > num_pixels_above_threshold:
+            #    print(f"Warning: Saturated mask area ({area_saturated}) is larger than number of pixels above threshold ({num_pixels_above_threshold}); skipping source", flush=True)
+            #    continue
                 
             # process the result
             if result is not None and np.isfinite(fluxerr) and snr > 1 and flux > 0:
@@ -351,7 +391,7 @@ def remove_saturated_stars(filename, save_suffix='_unsatstar', **kwargs):
     fh = fits.open(filename)
     data = fh['SCI'].data
 
-    # there are examples, especially in F405, where the variance is NaN but the value
+    # there are examples, especially in Faaaaa405, where the variance is NaN but the value
     # is negative
     print(f"Setting NaN variance to 0", flush=True)
     #data[np.isnan(fh['VAR_POISSON'].data)] = 0
@@ -365,10 +405,12 @@ def remove_saturated_stars(filename, save_suffix='_unsatstar', **kwargs):
         satstar_table.meta.update(header)
         print("Finished get_saturated_stars", flush=True)
 
-        satstar_table.write(filename.replace(".fits", '_satstar_catalog_newnew.fits'), overwrite=True)
+        satstar_table.write(filename.replace(".fits", '_satstar_catalog_newnewnewnew.fits'), overwrite=True)
+        print(f"Saved saturated star catalog to {filename.replace('.fits', '_satstar_catalog_newnewnewnew.fits')}", flush=True)
     else:
         print("No saturated stars found", flush=True)
-        return None
+        return
+    
     
 
 def main():
