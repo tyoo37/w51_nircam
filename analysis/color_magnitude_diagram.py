@@ -137,7 +137,7 @@ def plot_extvec_cmd(ax, color1, mag1, ext=RL85_MWGC(), extvec_scale=200, start=N
     else:
         start2 = start
 
-    ax.annotate(f'$A_V={extvec_scale}$', xy=(start2[0] + (e_1 - e_2), start2[1] + (e_3 - e_4)),
+    ax.annotate(f'$A_V={extvec_scale}$', xy=(start2[0] + (e_1 - e_2), start2[1] + e_3),
                 xytext=(start2[0], start2[1]),
                 arrowprops=dict(arrowstyle='-|>', color=color,
                                 shrinkA=0, shrinkB=0,
@@ -146,7 +146,7 @@ def plot_extvec_cmd(ax, color1, mag1, ext=RL85_MWGC(), extvec_scale=200, start=N
             label=f'$A_V={extvec_scale}$', linestyle='-', linewidth=2)
 
 
-imgsavedir = '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/plots/ccds2/'
+imgsavedir = '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/plots/cmds/'
 filters = {
     'f140m': f140m_mag,
     'f162m': f162m_mag,

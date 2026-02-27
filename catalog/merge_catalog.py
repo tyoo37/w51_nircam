@@ -67,7 +67,7 @@ def sanity_check_individual_table(tbl):
     print(f"SANITY CHECK {wl}")
 
     tbl = tbl.copy()
-    tbl.sort('flux_jy')ㅁ
+    tbl.sort('flux_jy')
     finite_fluxes = tbl['flux_jy'] > 0
 
     jfilts = SvoFps.get_filter_list('JWST')

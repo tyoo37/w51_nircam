@@ -195,7 +195,7 @@ if __name__ == "__main__":
     from optparse import OptionParser
     parser = OptionParser()
     parser.add_option("-f", "--filternames", dest="filternames",
-                    default='F140M,F150W,F182M,F187N,F210M,F335M,F360M,F405N,F410M,F480M',
+                    default='F162M',
                     help="filter name list", metavar="filternames")
     parser.add_option("--proposal_id", dest="proposal_id",
                     default='6151',
