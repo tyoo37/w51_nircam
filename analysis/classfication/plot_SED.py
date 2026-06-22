@@ -446,8 +446,8 @@ def plot_SED(sky_coordinates, label,
         print(f"Filter: {filter_name}, Wavelength: {wav} micron, Flux: {flux_jy}")
 
         flux_value = flux_jy.to_value(u.Jy) if hasattr(flux_jy, 'to_value') else float(flux_jy)
-        if is_upperlimit:
-            ax_main.errorbar(wav , flux_value, yerr=flux_value*0.5, uplims=True, color=colors[i], marker='o', markersize=20, label=filter_name.upper())
+#        if is_upperlimit:
+ #           ax_main.errorbar(wav , flux_value, yerr=flux_value*0.5, uplims=True, color=colors[i], marker='o', markersize=20, label=filter_name.upper())
         
         ax_main.plot(wav , flux_value, color = colors[i], marker='o', markersize=20, 
             label=filter_name.upper())
