@@ -19,6 +19,7 @@ Path = paths.filepaths()
 import warnings
 from astropy.wcs import FITSFixedWarning
 from astroquery.svo_fps import SvoFps
+from matplotlib.lines import Line2D
 
 warnings.filterwarnings("ignore", category=FITSFixedWarning)
 
@@ -76,7 +77,7 @@ catalogs_filters = {"f140m_nrca": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/c
                    "f1000w": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/f1000w_mirimage_indivexp_merged_dao_after_merger_combined_with_satstars_fixed.fits',
                    "f1280w": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/f1280w_mirimage_indivexp_merged_dao_after_merger_combined_with_satstars_fixed.fits',
                    "f2100w": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/f2100w_mirimage_indivexp_merged_dao_after_merger_combined_with_satstars_fixed.fits',
-                   "vla": '/home/t.yoo/w51/w51_nircam/analysis/vla.fits',
+                   "vla": '/blue/adamginsburg/t.yoo/w51_nircam/analysis/vla_updated.fits',
                   }
                   
 catalogs_filters_filtered = {"f140m_nrca": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/f140m_nrca_indivexp_merged_dao_after_merger_combined_with_satstars_nmatch_cut_grade_a.fits',
@@ -104,7 +105,7 @@ catalogs_filters_filtered = {"f140m_nrca": '/orange/adamginsburg/w51/TaehwaYoo/j
                    "f1000w": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/f1000w_mirimage_indivexp_merged_dao_after_merger_combined_with_satstars_nmatch_cut_grade_b_fixed.fits',
                    "f1280w": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/f1280w_mirimage_indivexp_merged_dao_after_merger_combined_with_satstars_nmatch_cut_grade_b_fixed.fits',
                    "f2100w": '/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/f2100w_mirimage_indivexp_merged_dao_after_merger_combined_with_satstars_nmatch_cut_grade_b_fixed.fits',
-                   "vla": '/home/t.yoo/w51/w51_nircam/analysis/vla.fits',
+                   "vla": '/blue/adamginsburg/t.yoo/w51_nircam/analysis/vla_updated.fits',
                   }
 reprojected_dir = '/orange/adamginsburg/jwst/w51/reproject_to_alma_extended/'
 
@@ -142,7 +143,7 @@ def plot_SED(sky_coordinates, label,
             jwst_catalog='/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/final_catalog_new.fits', 
             alma_catalog=['/blue/adamginsburg/t.yoo/from_red/w51/w51_frag_new/dendro/tables/dendro_w51e_master.fits',
                         '/blue/adamginsburg/t.yoo/from_red/w51/w51_frag_new/dendro/tables/dendro_w51n_master.fits'], 
-            vla_catalog='/home/t.yoo/w51/w51_nircam/analysis/vla_updated.fits', 
+            vla_catalog='/blue/adamginsburg/t.yoo/w51_nircam/analysis/vla_updated.fits', 
             cutout_size=2*u.arcsec, alma_region='w51e', show=False, matching_rad = 0.1*u.arcsec, 
             SEDsavedir='/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/plots/seds/'):
   
@@ -470,7 +471,8 @@ def plot_SED(sky_coordinates, label,
 
     
     plt.tight_layout()
-    plt.savefig(f'{SEDsavedir}/{alma_region}_source_{label}_SED.png')
+    if SEDsavedir is not None:
+        plt.savefig(f'{SEDsavedir}/{alma_region}_source_{label}_SED.png')
     if show:
         plt.show()
     plt.close()
