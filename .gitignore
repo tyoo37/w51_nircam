@@ -24,3 +24,4 @@ jwst_dolph_20250604_101545.phot.warnings
 *.json
 starbug.param
 *.png
+*.pkl
