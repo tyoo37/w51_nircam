@@ -29,9 +29,9 @@ from plot_fit import plot_fit, datafunction
 from scipy.ndimage import binary_dilation
 from matplotlib.lines import Line2D
 import os
+import glob
 
-
-catalog = Table.read('/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/final_catalog_new.fits')
+catalog = Table.read('/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/final_catalog_new_.fits')
 nmatch = catalog['nmatch_bands']
 catalog = catalog[nmatch>3]
 
@@ -210,6 +210,8 @@ from regions import Regions
 from itertools import chain
 from astropy import stats
 import pickle
+import math
+
 w51e_b6_noise_region = '/orange/adamginsburg/w51/TaehwaYoo/regions/w51e_b6_std_sky_new.reg'
 w51e_b3_noise_region = '/orange/adamginsburg/w51/TaehwaYoo/regions/w51e_b3_std_sky_new.reg'
 w51n_b6_noise_region = '/orange/adamginsburg/w51/TaehwaYoo/regions/w51n_b6_std_sky_new.reg'
@@ -288,8 +290,8 @@ def add_alma(skycoord):
 
 
             if ismatched:
-                flux = alma_cat[f'flux_{band}'][np.argmin(separation)].to(u.mJy).value
-                fluxerr = alma_cat[f'fluxerr_{band}'][np.argmin(separation)].to(u.mJy).value
+                flux = alma_cat[f'flux_{band}'][np.argmin(separation)] * 1e3
+                fluxerr = alma_cat[f'flux_err_{band}'][np.argmin(separation)] * 1e3
                 print(f'matched with ALMA with flux: in {band} ', flux)
 
                 valid = 1
@@ -522,13 +524,28 @@ for ii, filt in enumerate(filter_names):
 
 
 
-idx_upper={}
+
 model_ids_upper={}
+best_models_ids_upper={}
+best_idx_upper={}
+
+all_gs = glob.glob('/blue/adamginsburg/richardson.t/research/flux/r+24_models-1.2/s*')
+all_gs = [g.split('/')[-1] for g in all_gs if 'ipynb' not in g]
+for geo in all_gs:
+    model_ids_upper[geo] = []
+    best_models_ids_upper[geo] = []
+    best_idx_upper[geo] = []
+
+n_chunks = 20
+chunk_size = math.ceil(len(upper_idx) / n_chunks)
 for ii, idx in enumerate(upper_idx):
     if True:
-        chunk_id = ii//20
-        if os.getenv('SLURM_ARRAY_TASK_ID') is not None and int(os.getenv('SLURM_ARRAY_TASK_ID')) != chunk_id:
-            #print(f'Task={os.getenv("SLURM_ARRAY_TASK_ID")} does not match index {chunk_id}, skipping source {idx}')
+        chunk_id = ii // chunk_size
+        if chunk_id >= n_chunks:
+            chunk_id = n_chunks - 1
+
+        task_id = os.getenv("SLURM_ARRAY_TASK_ID")
+        if task_id is not None and int(task_id) != chunk_id:
             continue
 
         for filt in filter_names:
@@ -611,29 +628,37 @@ for ii, idx in enumerate(upper_idx):
                         extinction=extinction
                     )
             for geom in geometries}#['spubhmi']} #geometries}
-        okgeo = []
-        minchi2 = min([np.nanmin(fits_dict[geom].chi2) for geom in fits_dict])
-        
-        chi2limit = minchi2*3 if minchi2 > 3 else 9
-        deltachi2limit = chi2limit - minchi2
 
-        if np.isnan(minchi2):
-            raise ValueError(f"minchi2 is NaN for source {idx}, check the input data and fitting process.")
+        minminchi2 = min([np.nanmin(fits_dict[geom].chi2) for geom in fits_dict])
+
+        okgeo = []
+
+        chi2limit = minminchi2*3 if minminchi2 > 3 else 9
+        deltachi2limit = chi2limit - minminchi2
+
+        #if np.isnan(minchi2):
+        #    raise ValueError(f"minchi2 is NaN for source {idx}, check the input data and fitting process.")
         for geom in geometries:
           
-            print(f"Delta-chi^2 = {deltachi2limit} for min chi2 = {minchi2}")
-            if np.nanmin(fits_dict[geom].chi2) < deltachi2limit+minchi2:
+            #print(f"Delta-chi^2 = {deltachi2limit} for min chi2 = {minchi2}")
+            if np.nanmin(fits_dict[geom].chi2) < chi2limit:
                 okgeo.append(geom)
         if len(okgeo)>0:
             for geom in okgeo:
                 fitinfo = fits_dict[geom]
 
                 selection = fitinfo.chi2 < chi2limit
-                model_ids_upper[geom] = fitinfo.model_id[selection]
-                idx_upper[geom] = idx
+                model_ids_upper[geom].extend(fitinfo.model_id[selection])
+
+                minchi2 = np.nanmin(fits_dict[geom].chi2)
+                if minchi2 == minminchi2:
+                    best_models_ids_upper[geom].append(fits_dict[geom].model_id[np.nanargmin(fits_dict[geom].chi2)])
+                    best_idx_upper[geom].append(idx)
 
 # save model_ids_upper to a file
-with open(f"/blue/adamginsburg/t.yoo/w51_nircam/analysis/classfication/fit_data/model_ids_upper_{os.getenv('SLURM_ARRAY_TASK_ID')}.pkl", "wb") as f:
+with open(f"/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/sed_fitting/model_ids_upper_{os.getenv('SLURM_ARRAY_TASK_ID')}.pkl", "wb") as f:
     pickle.dump(model_ids_upper, f)
-with open(f"/blue/adamginsburg/t.yoo/w51_nircam/analysis/classfication/fit_data/idx_upper_{os.getenv('SLURM_ARRAY_TASK_ID')}.pkl", "wb") as f:
-    pickle.dump(idx_upper, f)
+with open(f"/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/sed_fitting/best_idx_upper_{os.getenv('SLURM_ARRAY_TASK_ID')}.pkl", "wb") as f:
+    pickle.dump(best_idx_upper, f)
+with open(f"/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/sed_fitting/best_models_ids_upper_{os.getenv('SLURM_ARRAY_TASK_ID')}.pkl", "wb") as f:
+    pickle.dump(best_models_ids_upper, f)
