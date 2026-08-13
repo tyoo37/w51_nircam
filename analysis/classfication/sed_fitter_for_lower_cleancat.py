@@ -32,7 +32,6 @@ import os
 import glob
 from sedfitter.sed import SEDCube
 
-
 catalog = Table.read('/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/catalogs/final_catalog_new_cfit_cut.fits')
 nmatch = catalog['nmatch_bands']
 catalog = catalog[nmatch>3]
@@ -243,41 +242,42 @@ def get_noise(fitsdata, noiseregion):
     std = stats.mad_std(noiseim,ignore_nan=True)
 
     return std
+w51e_b3_file = '/orange/adamginsburg/w51/TaehwaYoo/2017.1.00293.S_W51_B3_LB/may2021_successful_imaging/w51e2.spw0thru19.14500.robust0.thr0.075mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
+w51n_b3_file = '/orange/adamginsburg/w51/TaehwaYoo/2017.1.00293.S_W51_B3_LB/may2021_successful_imaging/w51n.spw0thru19.14500.robust0.thr0.075mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
+w51n_b6_file = '/orange/adamginsburg/w51/TaehwaYoo/w51n_b6_imaging_2025/w51n.spw0thru19.14500.robust0.thr0.1mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
+w51e_b6_file = '/orange/adamginsburg/w51/TaehwaYoo/w51e_b6_imaging_2025/w51e2.spw0thru19.14500.robust0.thr0.1mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
+
+w51e_alma_cat_file = '/orange/adamginsburg/w51/TaehwaYoo/dendro_w51e_master.fits'
+w51n_alma_cat_file = '/orange/adamginsburg/w51/TaehwaYoo/dendro_w51n_master.fits'
+w51e_b3_fits = fits.open(w51e_b3_file)
+w51n_b3_fits = fits.open(w51n_b3_file)
+w51n_b6_fits = fits.open(w51n_b6_file)
+w51e_b6_fits = fits.open(w51e_b6_file)
+
+w51e_b3_hdr = w51e_b3_fits[0].header
+w51n_b3_hdr = w51n_b3_fits[0].header
+w51n_b6_hdr = w51n_b6_fits[0].header
+w51e_b6_hdr = w51e_b6_fits[0].header
+
+w51e_b3_wcs = WCS(w51e_b3_hdr)
+w51n_b3_wcs = WCS(w51n_b3_hdr)
+w51n_b6_wcs = WCS(w51n_b6_hdr)
+w51e_b6_wcs = WCS(w51e_b6_hdr)
+
+w51e_b3_img = w51e_b3_fits[0].data[0][0]
+w51n_b3_img = w51n_b3_fits[0].data[0][0]
+w51n_b6_img = w51n_b6_fits[0].data[0][0]
+w51e_b6_img = w51e_b6_fits[0].data[0][0]
+
+w51e_alma_cat = Table.read(w51e_alma_cat_file)
+w51n_alma_cat = Table.read(w51n_alma_cat_file)
 def add_alma(skycoord):
     from radio_beam import Beam
     from photutils.aperture import SkyEllipticalAperture
     from photutils.aperture import aperture_photometry
     from astropy.wcs import WCS
 
-    w51e_b3_file = '/orange/adamginsburg/w51/TaehwaYoo/2017.1.00293.S_W51_B3_LB/may2021_successful_imaging/w51e2.spw0thru19.14500.robust0.thr0.075mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
-    w51n_b3_file = '/orange/adamginsburg/w51/TaehwaYoo/2017.1.00293.S_W51_B3_LB/may2021_successful_imaging/w51n.spw0thru19.14500.robust0.thr0.075mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
-    w51n_b6_file = '/orange/adamginsburg/w51/TaehwaYoo/w51n_b6_imaging_2025/w51n.spw0thru19.14500.robust0.thr0.1mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
-    w51e_b6_file = '/orange/adamginsburg/w51/TaehwaYoo/w51e_b6_imaging_2025/w51e2.spw0thru19.14500.robust0.thr0.1mJy.mfs.I.startmod.selfcal7.image.tt0.pbcor.fits'
-
-    w51e_alma_cat_file = '/orange/adamginsburg/w51/TaehwaYoo/dendro_w51e_master.fits'
-    w51n_alma_cat_file = '/orange/adamginsburg/w51/TaehwaYoo/dendro_w51n_master.fits'
-    w51e_b3_fits = fits.open(w51e_b3_file)
-    w51n_b3_fits = fits.open(w51n_b3_file)
-    w51n_b6_fits = fits.open(w51n_b6_file)
-    w51e_b6_fits = fits.open(w51e_b6_file)
-    
-    w51e_b3_hdr = w51e_b3_fits[0].header
-    w51n_b3_hdr = w51n_b3_fits[0].header
-    w51n_b6_hdr = w51n_b6_fits[0].header
-    w51e_b6_hdr = w51e_b6_fits[0].header
-
-    w51e_b3_wcs = WCS(w51e_b3_hdr)
-    w51n_b3_wcs = WCS(w51n_b3_hdr)
-    w51n_b6_wcs = WCS(w51n_b6_hdr)
-    w51e_b6_wcs = WCS(w51e_b6_hdr)
-    
-    w51e_b3_img = w51e_b3_fits[0].data[0][0]
-    w51n_b3_img = w51n_b3_fits[0].data[0][0]
-    w51n_b6_img = w51n_b6_fits[0].data[0][0]
-    w51e_b6_img = w51e_b6_fits[0].data[0][0]
-
-    w51e_alma_cat = Table.read(w51e_alma_cat_file)
-    w51n_alma_cat = Table.read(w51n_alma_cat_file)
+   
 
     # check whether skycoord is in the fov of the image
     fluxes = []
@@ -404,15 +404,44 @@ def add_alma(skycoord):
     return b3_flux_final, b3_fluxerr_final, b6_flux_final, b6_fluxerr_final, b3_valid_final, b6_valid_final
 
 def make_extinction():
-    ext = P92()
-
+    """
+    Best-fit parameters:
+    BKG_amp = 250
+    BKG_lambda = 0.02
+    BKG_b = 407.27
+    BKG_n = 1.5907
+    SIL1_amp = 0.00194345
+    SIL1_lambda = 9.8
+    SIL1_b = -1.97467
+    SIL1_n = 1.5
+    SIL2_amp = 0.0346621
+    SIL2_lambda = 18.6
+    SIL2_b = -1.43583
+    SIL2_n = 1.5
+    """
+    best_params = {'BKG_amp': 250, 'BKG_lambda': 0.02, 'BKG_b': 407.27, 'BKG_n': 1.5907, 'SIL1_amp': 0.00194345, 'SIL1_lambda': 9.8, 'SIL1_b': -1.97467, 'SIL1_n': 1.5, 'SIL2_amp': 0.0346621, 'SIL2_lambda': 18.6, 'SIL2_b': -1.43583, 'SIL2_n': 1.5}
+    ext_p92 = P92(**best_params)
+    ext_ct06 = CT06_MWLoc()
     guyver2009_avtocol = (2.21e21 * u.cm**-2 * (1.34 * u.Da)).to(u.g / u.cm**2)
     ext_wav = np.sort((np.geomspace(0.001, 1000, 10000) / u.um).to(u.um, u.spectral()))
-    ext_vals = ext(ext_wav)
+    wav_ct06 = np.geomspace(1.28, 25, 1000)*u.um  # Wavelength range from 0.1 to 3 microns
+    ext_val_p92 = ext_p92(ext_wav)
+    ext_val_ct06 = ext_ct06(wav_ct06)
+    wav_short = np.where(ext_wav<1.28*u.um)[0]
+    wav_mid = np.where((ext_wav>=1.28*u.um) & (ext_wav<=26.5*u.um))[0]
+    wav_long = np.where(ext_wav>26.5*u.um)[0]
+     
+    ext_val = np.zeros_like(ext_wav.value)
+    ext_val[wav_mid] = ext_ct06((1.0 / ext_wav[wav_mid]).to(1 / u.um))
+    slope = (ext_val[wav_mid][0] - ext_val[wav_mid][1]) / (ext_wav[wav_mid][0].value - ext_wav[wav_mid][1].value)
+    intercept = ext_val_ct06[0] - slope * wav_ct06[0].value
+
+    ext_val[wav_short] = slope * ext_wav[wav_short].value + intercept
+    ext_val[wav_long] = ext_val_p92[wav_long]
 
     extinction = Extinction()
     extinction.wav = ext_wav
-    extinction.chi = ext_vals / guyver2009_avtocol
+    extinction.chi = ext_val / guyver2009_avtocol
     return extinction
 
 extinction = make_extinction()
@@ -552,12 +581,12 @@ def phys_stage(pars,g):
         stage[exists] = 3
     return stage
 
-def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
-             default_aperture=3000*u.au, distance_range=[5300,5500],
+def plot_fit_models(fieldid, fits, geos, modelids, class_dict, stage_dict, spicyid=0,
+             default_aperture=3000*u.au,distance_range=[5.25,5.65],
              extinction=None, 
-              extinction_range=[0,80],
+             extinction_range=[0,80],
              robitaille_modeldir='/blue/adamginsburg/richardson.t/research/flux/robitaille_models-1.2',
-             loc_imagedir='/blue/adamginsburg/adamginsburg/SPICY_ALMAIMF/BriceTingle/Location_figures'):
+             loc_imagedir=None):
 
     """
     Parameters
@@ -570,8 +599,6 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
         contains strings (the labels of the best-fit geometries)
     wavelength_dict : dict
         entry ex. "'UKIRT/UKIDSS.J': <Quantity 12510.1752769 Angstrom>"
-    chi2limit : number
-        chi2 value to serve as upper bound for limiting models shown
     min_chi2 : number
         chi2 value to serve as lower bound for limiting models shown. 
         if None, min_chi2 will be recalculated for each geometry
@@ -604,8 +631,9 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
     import matplotlib.pyplot as plt
     from matplotlib.gridspec import GridSpec
     from matplotlib.lines import Line2D
+    
     basefig = plt.figure(figsize=(20, 24))
-    gs = GridSpec(nrows=7, ncols=2, height_ratios=[4,1,1,1,1,1,1], hspace=0.35, wspace=0.1)
+    gs = GridSpec(nrows=8, ncols=2, height_ratios=[3,1,1,1,1,1,1,1], hspace=0.35, wspace=0.1)
     plt.rcParams.update({'font.size': 20})
 
     # --------------------------------
@@ -613,6 +641,7 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
     # --------------------------------
     
     ax0 = basefig.add_subplot(gs[0, :])
+    
     
     # gather some information consistent across all geoms
     fitinfo = fits[geos[0]]
@@ -647,18 +676,22 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
     all_gs = [g.split('/')[-1] for g in all_gs if 'ipynb' not in g]
 
     for ii, geom in enumerate(all_gs):
-        colors[geom] = plt.cm.Set1(ii)
-    
-
+        colors[geom] = plt.cm.Set1(ii / len(all_gs))
+    modelnames=[]
     # loop over all 'good' geometries to display SED models:
     for ii, (geom, modelid) in enumerate(zip(geos, modelids)):
+        print('model_id:', modelid)
         print('geometry:', geom)
         fitinfo = fits[geom]
         model_dir = f'{robitaille_modeldir}/{geom}'
         sedcube = SEDCube.read(f"{model_dir}/flux.fits",)
         index = np.where(fitinfo.model_id == modelid)[0][0]
         distance = 10**fitinfo.sc[index] * u.kpc
+        chi2 = fitinfo.chi2[index]
+        print('chi2 in plot:', chi2)
         modelname = fitinfo.model_name[index]
+        print('modelname in plot:', modelname)
+        modelnames.append(modelname)
         sed = sedcube.get_sed(modelname)
         apnum = np.argmin(np.abs(default_aperture - sedcube.apertures))
         # https://github.com/astrofrog/sedfitter/blob/41dee15bdd069132b7c2fc0f71c4e2741194c83e/sedfitter/sed/sed.py#L64
@@ -666,12 +699,16 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
         distance_scale = (1 * u.kpc / distance)**2
         av_scale_conv = np.array([
             10**(av_scale * extinction.get_av(wavelength).item())
-            for wavelength in wavelengths
+            for wavelength in sedcube.wav
         ])
 
       
         line, = ax0.plot(sedcube.wav,
-                 sed.flux[apnum] * distance_scale * av_scale,
+                 sed.flux[apnum] * distance_scale * av_scale_conv, color=colors[geom],
+                alpha=0.9-ii*0.05)
+
+        _, = ax0.plot(sedcube.wav,
+                 sed.flux[apnum] * distance_scale, color=colors[geom], ls='dotted',
                 alpha=0.9-ii*0.05)
         
         #colors[geom] = line.get_color()
@@ -686,19 +723,18 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
             np.argmin(np.abs(ww - sedcube.wav)) for ww in wavelengths])
         
         
-        flux = np.array([sed.flux[apn, wavid].value for apn, wavid in zip(apnums, wlids)])
+        #flux = np.array([sed.flux[apn, wavid].value for apn, wavid in zip(apnums, wlids)])
         
         
-        av_scale_conv = np.array([10**(fitinfo.av[index] * extinction.get_av(wavelength).item()) for wavelength in wavelengths])
+       # av_scale_conv = np.array([10**(fitinfo.av[index] * extinction.get_av(wavelength).item()) for wavelength in wavelengths])
         
-        flux = flux * distance_scale.value * av_scale_conv
-        print('len(wavelengths_value), np.shape(flux), np.shape(apertures), np.shape(distance_scale), np.shape(av_scale_conv)', len(wavelengths_value), np.shape(flux), np.shape(apertures), np.shape(distance_scale), np.shape(av_scale_conv))
-        ax0.scatter(wavelengths_value, flux, marker='s', s=apertures, c=line.get_color())
+       # flux = flux * distance_scale.value * av_scale_conv
+        #ax0.scatter(wavelengths_value, flux, marker='s', s=apertures, c=line.get_color())
     geos_unique = np.unique(geos)
     legend_elements = []
 
     for geom in geos_unique:   
-        legend_elements.append(Line2D([0], [0], lw=4, label=geom))
+        legend_elements.append(Line2D([0], [0], lw=4, label=geom, color=colors[geom]))
     ax0.legend(handles=legend_elements, loc='upper right', fontsize=15)
     idx_valid1 = np.where(valid==1)[0]
     idx_valid2 = np.where(valid==2)[0]
@@ -720,6 +756,7 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
     
     histogram_alpha = 0.8
     
+    
     # stellar temperature
     ax1 = basefig.add_subplot(gs[1, 0])
     ax1.set_xlabel("Stellar Temperature (K)")
@@ -733,8 +770,8 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
     
     # stellar radius
     ax3 = basefig.add_subplot(gs[2, 0])
-    ax3.set_xlabel("Stellar Radius (R$_\odot$)")
-    radius_bins = np.logspace(-1, 3, 50)
+    ax3.set_xlabel("chi2")
+    chi2_bins = np.logspace(0, 4.5, 100)
     _=ax3.semilogx()
 
     # line-of-sight mass
@@ -762,51 +799,135 @@ def plot_fit_models(fieldid, fits, geos, modelids, classes, stages, spicyid=0,
 
 
     ax9 = basefig.add_subplot(gs[5, 0])
-    ax9.hist(classes, bins=np.arange(-0.5, 3.5, 1), align='mid', rwidth=0.8)
+    
     ax9.set_xlabel("Class")
-    ax9.set_xticks([0, 1, 2, 3], ['Class I', 'Flat', 'Class II', 'Class III'])
-
+    ax9.set_xticks([-1, 0, 1, 2, 3], ['Unclassfied', 'Class I', 'Flat', 'Class II', 'Class III'])
+    ax9.set_xlim(-1.5, 3.5)
     ax10 = basefig.add_subplot(gs[5, 1])
-    ax10.hist(stages, bins=np.arange(-0.5, 3.5, 1), align='mid', rwidth=0.8)
     ax10.set_xlabel("Stage")
-    ax10.set_xticks([0, 1, 2, 3], ['Stage 0', 'Stage I', 'Stage II', 'Stage III'])
+    ax10.set_xticks([-1, 0, 1, 2, 3], ['Unclassified', 'Stage 0', 'Stage I', 'Stage II', 'Stage III'])
+    ax10.set_xlim(-1.5, 3.5)
 
 
+    ax11 = basefig.add_subplot(gs[6, 0])
+    ax11.set_xlabel('inclination (deg)')
 
-    for geom, modelid in zip(geos, modelids):
-        print('geom', geom)
-        pars = Table.read(f'/blue/adamginsburg/richardson.t/research/flux/pars/{geom}_augmented.fits') 
-        selection = np.where(pars['MODEL_NAME'] == modelid)[0]
-        data = pars[fitinfo.model_id[selection]] 
-        if 'star.temperature' in pars.keys():
-            ax1.hist(data['star.temperature'], bins=temperature_bins, alpha=histogram_alpha, label=geom, color=colors[geom])
-        if 'Model Luminosity' in pars.keys():
-            ax2.hist(data['Model Luminosity'], bins=luminosity_bins, alpha=histogram_alpha, label=geom, color=colors[geom])
-        if 'star.radius' in pars.keys():
-            ax3.hist(data['star.radius'], bins=radius_bins, alpha=histogram_alpha, label=geom, color=colors[geom])
-        if 'Line-of-Sight Masses' in pars.keys():
-            try:
-                ax4.hist(data['Line-of-Sight Masses'][:,apnum], bins=los_bins, alpha=histogram_alpha, label=geom, color=colors[geom])
-            except ValueError:
-                print("ValueError while plotting LOS mass for ",geom)
-        if 'disk.mass' in pars.keys():
-            try:
-                ax5.hist(data['disk.mass'], bins=disk_bins, alpha=histogram_alpha, label=geom, color=colors[geom])
-            except ValueError:
-                print("ValueError while plotting disk mass for ",geom)
-        if 'Sphere Masses' in pars.keys():
-            try:
-                ax6.hist(data['Sphere Masses'][:,apnum], bins=sphere_bins, alpha=histogram_alpha, label=geom, color=colors[geom])
-            except ValueError:
-                print("ValueError while plotting sphere mass for ",geom)
+    ax12 = basefig.add_subplot(gs[6, 1])
+    ax12.set_xlabel('cavity opening angle (deg)')
+    for geo in all_gs:
+        geo_idx = np.where(np.array(geos) == geo)[0]
+        if len(geo_idx) >0:
+            pars = Table.read(f'/blue/adamginsburg/richardson.t/research/flux/pars/{geo}_augmented.fits') 
+            print('geo_idx:', geo_idx)
+            modelname_matched = np.array(modelnames)[geo_idx]
+            modelid_matched = np.array(modelids)[geo_idx]
+
+            star_temperatures = []
+            model_luminosities = []
+            line_of_sight_masses = []
+            disk_masses = []
+            sphere_masses = []
+            distances = []
+            avs = []
+            chi2s = []
+            classes = []
+            stages  = []
+            inclinations = []
+            cavity_opening_angles = []
+            for modelid, modelname in zip(modelid_matched, modelname_matched):
+                selection_for_pars = np.where(pars['MODEL_NAME'] == modelname)[0]
+                print('selection_for_pars:', selection_for_pars)
+                print('fits[geo].model_id[selection_for_pars]:', fits[geo].model_id[selection_for_pars])
+                data = pars[selection_for_pars] 
+                if 'star.temperature' in pars.keys():
+                    star_temperatures.append(data['star.temperature'])
+                if 'Model Luminosity' in pars.keys():
+                    model_luminosities.append(data['Model Luminosity'])
         
-  
-        distances = 10**fits[geom].sc
-        ax7.hist(distances[selection], bins=np.linspace(distance_range[0], distance_range[1]), color=colors[geom])
-        ax8.hist(fits[geom].av[selection], bins=np.linspace(extinction_range[0], extinction_range[1]), color=colors[geom])
-    loc_imagepath = f'{loc_imagedir}/{fieldid}_{spicyid}.png'
-    plt.savefig(f'{loc_imagedir}/{fieldid}_{spicyid}.png', dpi=300, bbox_inches='tight')
+                if 'Line-of-Sight Masses' in pars.keys():
+                    line_of_sight_masses.append(data['Line-of-Sight Masses'][:,apnum])
+                if 'disk.mass' in pars.keys():
+                    disk_masses.append(data['disk.mass'])
+                if 'Sphere Masses' in pars.keys():  
+                    sphere_masses.append(data['Sphere Masses'][:,apnum])
+                if 'inclination' in pars.keys():
+                    inclinations.append(data['inclination'])
+                if 'cavity.theta_0' in pars.keys():
+                    cavity_opening_angles.append(data['cavity.theta_0'])
+                
+
+                index_for_fits = np.where(fits[geo].model_id == modelid)[0]
+               
+                distance = 10 ** fits[geo].sc[index_for_fits]
+                av = fits[geo].av[index_for_fits]
+                distances.append(distance)
+                avs.append(av)
+
+                chi2_vals = (fits[geo].chi2[index_for_fits]).ravel()
+                print('chi2_vals:', chi2_vals)
+                chi2s.extend(chi2_vals.value.tolist())
+                classes.extend(class_dict[geo][selection_for_pars].tolist())
+                print('classes:', classes)
+                stages.extend(stage_dict[geo][selection_for_pars].tolist())
+                print('stages:', stages)
+                print('chi2s:', chi2s)
+            if 'star.temperature' in pars.keys():
+                ax1.hist(np.concatenate(star_temperatures), bins=temperature_bins, alpha=histogram_alpha, label=geo, color=colors[geo])
+            if 'Model Luminosity' in pars.keys():
+                ax2.hist(np.concatenate(model_luminosities), bins=luminosity_bins, alpha=histogram_alpha, label=geo, color=colors[geo])
+           
+                ax3.hist(chi2s, bins=chi2_bins, alpha=histogram_alpha, label=geo, color=colors[geo])
+            if 'Line-of-Sight Masses' in pars.keys():
+                try:
+                    ax4.hist(
+                        np.concatenate([np.asarray(np.ma.filled(x, np.nan), dtype=float).ravel()
+                                        for x in line_of_sight_masses]),
+                        bins=los_bins, alpha=histogram_alpha, label=geo, color=colors[geo]
+                    )
+                except ValueError:
+                    print("ValueError while plotting LOS mass for ",geo)
+            if 'disk.mass' in pars.keys():
+                try:
+                    ax5.hist(
+                        np.concatenate([np.asarray(np.ma.filled(x, np.nan), dtype=float).ravel()
+                                        for x in disk_masses]),
+                        bins=disk_bins, alpha=histogram_alpha, label=geo, color=colors[geo]
+                    )
+                except ValueError:
+                    print("ValueError while plotting disk mass for ",geo)
+            if 'Sphere Masses' in pars.keys():
+                try:
+                    ax6.hist(
+                        np.concatenate([np.asarray(np.ma.filled(x, np.nan), dtype=float).ravel()
+                                        for x in sphere_masses]),
+                        bins=sphere_bins, alpha=histogram_alpha, label=geo, color=colors[geo]
+                    )
+                except ValueError:
+                    print("ValueError while plotting sphere mass for ",geo)
+
+
+                
+            ax7.hist(np.concatenate(distances), bins=np.linspace(distance_range[0]-0.01, distance_range[1]+0.01), color=colors[geo])
+            ax8.hist(np.concatenate(avs), bins=np.linspace(extinction_range[0], extinction_range[1]), color=colors[geo])
+
+        
+            ax9.hist(classes, bins=np.arange(-1.5, 3.5, 1), align='mid', rwidth=0.8, color=colors[geo])
+            ax10.hist(stages, bins=np.arange(-1.5, 3.5, 1), align='mid', rwidth=0.8, color=colors[geo])
+            ax11.set_xlabel('inclination (deg)')
+            ax12.set_xlabel('cavity opening angle (deg)')
+
+            if 'inclination' in pars.keys():
+                
+                ax11.hist(np.concatenate(inclinations), bins=np.linspace(0, 90, 10), color=colors[geo])
+            if 'cavity.theta_0' in pars.keys():
+                ax12.hist(np.concatenate(cavity_opening_angles), bins=np.linspace(0, 90, 10), color=colors[geo])
+
+    if loc_imagedir is not None:
+        loc_imagepath = f'{loc_imagedir}/{fieldid}_{spicyid}.png'
+        plt.savefig(f'{loc_imagedir}/{fieldid}_{spicyid}.png', dpi=300, bbox_inches='tight')
     plt.show()
+
+
 
 
 
@@ -855,6 +976,7 @@ all_gs = [g.split('/')[-1] for g in all_gs if 'ipynb' not in g]
 ap_ind = 3
 
 class_dict = {}
+class_model_dict = {}
 classpoints = np.array([-1.6,-0.3,0.3,np.inf])
 for g in tqdm(all_gs):
     geo = g.split('/')[-1]
@@ -864,17 +986,19 @@ for g in tqdm(all_gs):
     obs_class = map_to_class(np.array(obs_class))
     #print('indices:',indices['Spectral Index'][:,ap_ind], 'obs_class:', obs_class)
     class_dict.update({geo:obs_class})
-
+    class_model_dict.update({geo:indices['MODEL_NAME']})
 
 stage_dict = {}
+stage_model_dict = {}
 all_gs = glob.glob('/blue/adamginsburg/richardson.t/research/flux/r+24_models-1.2/s*')
 all_gs = [g.split('/')[-1] for g in all_gs if 'ipynb' not in g]
 for g in tqdm(all_gs):
     geo = g.split('/')[-1]
     pars_tab = Table.read(f'/blue/adamginsburg/richardson.t/research/flux/pars/{geo}_augmented.fits')
     stage_from_geo = phys_stage(pars_tab, geo)
-
+    stage_model_dict.update({geo:pars_tab['MODEL_NAME']})
     stage_dict.update({geo:stage_from_geo})
+
 
 
 dict_to_write = {}
@@ -930,7 +1054,7 @@ for ii, idx in enumerate(lower_idx):
         #print('wcss[filt].proj_plane_pixel_area():', wcss['f140m'].proj_plane_pixel_area())
         #print('catalog[idx][f"flux_err_{filt}"]:', catalog[idx][f'flux_err_f140m'])
         fluxerr = u.Quantity([(catalog[idx][f'flux_err_{filt}'] * u.MJy / u.sr * wcss[filt].proj_plane_pixel_area().to(u.sr)).to(u.mJy) for filt in filternames_use]) # Jy -> mJy
-        
+
 
         valid, fluxarr = get_valid(catalog[idx], filternames_use, imgs_use, wcss_use, max_fluxs_use, masks_use)
         #print('fluxarr', fluxarr)
@@ -968,7 +1092,7 @@ for ii, idx in enumerate(lower_idx):
         print('wavelength', tab_lower['wavelength'])
         print('valid', valid)
         print('av_estimates[idx]:', av_estimates[idx])
-
+        print('geometries:', geometries)
 
         #print('av_estimates[idx]:', av_estimates[idx])
         fits_dict = {geom:
@@ -976,8 +1100,8 @@ for ii, idx in enumerate(lower_idx):
                 error=tab_lower['eflux'].quantity,
                 valid=valid, aperture_size=tab_lower['aperture'].quantity,
                 filters=tab_lower['wavelength'].quantity,
-                    av_range=[0, av_estimates[idx]],
-                    distance_range=[5300,5500]*u.pc,
+                    av_range=[10, av_estimates[idx]],
+                    distance_range=[5.3,5.5]*u.kpc,
                         geometry=geom,
                         stash_to_mmap=True,
                         robitaille_modeldir='/blue/adamginsburg/richardson.t/research/flux/r+24_models-1.2',
@@ -986,55 +1110,84 @@ for ii, idx in enumerate(lower_idx):
             for geom in geometries}#['spubhmi']} #geometries}
 
         # for all geometries, collect chi2 for all the models, and then get the models with 10 lowest chi2 values
-        records = []
-
+        chi2_all_geos =[]
+        len_all_geos = []
         for geom in geometries:
             fitinfo = fits_dict[geom]
-            for local_idx, chi2 in enumerate(fitinfo.chi2):
-                records.append({
-                    "chi2": chi2,
-                    "geom": geom,
-                    "local_idx": local_idx,
-                    "model_id": fitinfo.model_id[local_idx],
-                    "av": fitinfo.av[local_idx],
-                    "distance": 10 ** fitinfo.sc[local_idx],
-                })
+            chi2_all_geos.extend(fitinfo.chi2)
+            len_all_geos.append(len(fitinfo.chi2))
+        print('len(chi2_all_geos):', len(chi2_all_geos))
+        sorted_indices = np.argsort(chi2_all_geos)
+        print('len_all_geos:', len_all_geos)
+        records = []
+        for sorted_idx in sorted_indices[:10]:
+            print('idx:', idx)
+            geom_idx = np.searchsorted(np.cumsum(len_all_geos), sorted_idx, side='right')
+            geom_start = 0 if geom_idx == 0 else np.sum(len_all_geos[:geom_idx])
+            local_idx = int(sorted_idx - geom_start)
+            print('local_idx:', local_idx)
+            geom = geometries[geom_idx]
+            print('geom:', geom)
+            fitinfo = fits_dict[geom]
+            print('fitinfo.model_id:', fitinfo.model_id)
+            print('local_idx', local_idx)
+            chi2 = fitinfo.chi2[local_idx]
+            print('chi2:', chi2)
+        
+            model_id = fitinfo.model_id[local_idx]
+            print('model_id:', model_id)
+            av = fitinfo.av[local_idx]
+            distance = 10**fitinfo.sc[local_idx]
+            model_name = fitinfo.model_name[local_idx]
 
-        records = sorted(records, key=lambda rec: rec["chi2"])
-        best_records = records[:10]
+            idx_for_class = np.where(class_model_dict[geom] == model_name)[0][0]
+            idx_for_stage = np.where(stage_model_dict[geom] == model_name)[0][0]
+            stage = stage_dict[geom][idx_for_stage]
+            class_ = class_dict[geom][idx_for_class]
 
-        model_ids_dict = [rec["model_id"] for rec in best_records]
-        geom_dict = [rec["geom"] for rec in best_records]
-        chi2s_dict = [rec["chi2"] for rec in best_records]
-        av_dict = [rec["av"] for rec in best_records]
-        distance_dict = [rec["distance"] for rec in best_records]
+            record = {
+                "geom": geom,
+                "idx": idx,
+                "model_id": model_id,
+                "chi2": chi2,
+                "av": av,
+                "distance": distance,
+                "model_name": model_name,
+                "class": class_,
+                "stage": stage
+            }
+            records.append(record)
 
-        classes = []
-        stages = []
-        for rec in best_records:
-            geom = rec["geom"]
-            local_idx = rec["local_idx"]
-            model_id = rec["model_id"]
 
-            classes.append(class_dict[geom][local_idx])
-            stages.append(stage_dict[geom][local_idx])
-            
+
+        model_ids_dict = [rec["model_id"] for rec in records]
+        print('model_ids_dict:', model_ids_dict)
+        geom_dict = [rec["geom"] for rec in records]
+        print('geom_dict:', geom_dict)
+        chi2s_dict = [rec["chi2"] for rec in records]
+        print('chi2s_dict:', chi2s_dict)
+        av_dict = [rec["av"] for rec in records]
+        distance_dict = [rec["distance"] for rec in records]
+        print('av_dict:', av_dict)
+        print('distance_dict:', distance_dict)
+        model_names_dict = [rec["model_name"] for rec in records]
+        print('model_names_dict:', model_names_dict)
+        print('class_dict:', [rec["class"] for rec in records])
+        print('stage_dict:', [rec["stage"] for rec in records])
+
+        #for geo, model_id in zip([rec["geom"] for rec in records], [rec["class"] for rec in records]):
+         #   obs_class = class_dict[geo][model_id]
+         #   print(f'Observation {geo} with model {model_id} has class {obs_class}')
+
 
         #dict_to_write[idx] = {'model_id': model_ids_dict, 'geom': geom_dict, 'chi2': chi2s_dict, 'av': av_dict, }
         chi2limit = chi2s_dict[-1]
         minchi2 = chi2s_dict[0]
-        dict_to_write[idx] = {'model_id': model_ids_dict, 'geom': geom_dict, 'chi2': chi2s_dict, 'av': av_dict, 'distance': distance_dict}
-        """
-         fieldid, fits, geos, modelids, classes, stages, 
-             default_aperture=3000*u.au,
-             extinction=None, 
-              extinction_range=[0,60],
-             robitaille_modeldir='/blue/adamginsburg/richardson.t/research/flux/robitaille_models-1.2',
-             loc_imagedir='/blue/adamginsburg/adamginsburg/SPICY_ALMAIMF/BriceTingle/Location_figures'
-        """
+        dict_to_write[idx] = {'model_id': model_ids_dict, 'geom': geom_dict, 'chi2': chi2s_dict, 'av': av_dict, 
+        'distance': distance_dict, 'model_name':model_names_dict, 'class': [rec["class"] for rec in records], 'stage': [rec["stage"] for rec in records]}
         if num<10:
-            plot_fit_models('W51-E', fits_dict, geom_dict, model_ids_dict, classes, stages, spicyid=idx,
-                 extinction=extinction,
+            plot_fit_models('W51-E', fits_dict, geom_dict, model_ids_dict, class_dict, stage_dict, spicyid=idx,
+                    extinction=extinction,
                 loc_imagedir='/orange/adamginsburg/w51/TaehwaYoo/jwst_w51/sed_fitting/plots/lowers/', robitaille_modeldir='/blue/adamginsburg/richardson.t/research/flux/r+24_models-1.2',)
         num+=1
 
