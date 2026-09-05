@@ -521,6 +521,8 @@ for ii in range(len(all_idx_upper)):
                 ax.set_ylabel('Flux (Jy)')
                 ax.set_xscale('log')
                 ax.set_yscale('log')
+                ax.set_xlim(1.4, 5)
+
                
                 ax2.scatter(gradient_paa, paa_line, label='Pa-alpha', color=plt.get_cmap('rainbow_r')(jj / (len(i10_arr) - 1)), marker='o')
                 ax2.scatter(gradient_bra, bra_line, label='Br-alpha', color=plt.get_cmap('rainbow_r')(jj / (len(i10_arr) - 1)), marker='x')
@@ -535,7 +537,6 @@ for ii in range(len(all_idx_upper)):
                 ax3.set_yscale('log')
                
 
-            ax.set_xlim(1.4, 5)
             #ax.set_ylim(extincted_sed[np.argmin(np.abs(sedcube.wav.value-1))].value*0.1, extincted_sed[np.argmin(np.abs(sedcube.wav.value-25))].value*10)
             paa_excess.append(paa_line)
             bra_excess.append(bra_line)
@@ -670,7 +671,8 @@ for ii in range(len(all_idx_lower)):
                 ax.set_ylabel('Flux (Jy)')
                 ax.set_xscale('log')
                 ax.set_yscale('log')
-               
+                ax.set_xlim(1.4, 5)
+
                 ax2.scatter(gradient_paa, paa_line, label='Pa-alpha', color=plt.get_cmap('rainbow_r')(jj / (len(i10_arr) - 1)), marker='o')
                 ax2.scatter(gradient_bra, bra_line, label='Br-alpha', color=plt.get_cmap('rainbow_r')(jj / (len(i10_arr) - 1)), marker='x')
                 ax2.set_xlabel('Gradient of Deextincted SED (Jy/micron)')
@@ -684,7 +686,6 @@ for ii in range(len(all_idx_lower)):
                 ax3.set_yscale('log')
                
 
-            ax.set_xlim(1.4, 5)
             #ax.set_ylim(extincted_sed[np.argmin(np.abs(sedcube.wav.value-1))].value*0.1, extincted_sed[np.argmin(np.abs(sedcube.wav.value-25))].value*10)
             paa_excess.append(paa_line)
             bra_excess.append(bra_line)
