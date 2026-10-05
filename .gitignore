@@ -1,3 +1,9 @@
+*.ipynb.bak*
+*.pdf
+*.dat
+*.sbatch
+*.npz
+*.ecsv
 jwst_dolph_20250603_232525.phot
 jwst_dolph_20250603_232525.phot.align
 jwst_dolph_20250603_232525.phot.apcor
